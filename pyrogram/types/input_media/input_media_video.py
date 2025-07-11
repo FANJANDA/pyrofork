@@ -62,10 +62,6 @@ class InputMediaVideo(InputMedia):
         duration (``int``, *optional*):
             Video duration.
 
-        file_name (``str``, *optional*):
-            File name of the video sent.
-            Defaults to file's path basename.
-
         supports_streaming (``bool``, *optional*):
             Pass True, if the uploaded video is suitable for streaming.
 
@@ -74,18 +70,19 @@ class InputMediaVideo(InputMedia):
     """
 
     def __init__(
-        self,
-        media: Union[str, BinaryIO],
-        thumb: str = None,
-        caption: str = "",
-        parse_mode: Optional["enums.ParseMode"] = None,
-        caption_entities: List[MessageEntity] = None,
-        width: int = 0,
-        height: int = 0,
-        duration: int = 0,
-        file_name: str = None,
-        supports_streaming: bool = True,
-        has_spoiler: bool = None,
+            self,
+            media: Union[str, BinaryIO],
+            thumb: str = None,
+            caption: str = "",
+            parse_mode: Optional["enums.ParseMode"] = None,
+            caption_entities: List[MessageEntity] = None,
+            width: int = 0,
+            height: int = 0,
+            duration: int = 0,
+            supports_streaming: bool = True,
+            has_spoiler: bool = None,
+            *args,
+            **kwargs
     ):
         super().__init__(media, caption, parse_mode, caption_entities)
 
@@ -93,6 +90,5 @@ class InputMediaVideo(InputMedia):
         self.width = width
         self.height = height
         self.duration = duration
-        self.file_name = file_name
         self.supports_streaming = supports_streaming
         self.has_spoiler = has_spoiler

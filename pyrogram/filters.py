@@ -962,7 +962,41 @@ def command(commands: Union[str, List[str]], prefixes: Union[str, List[str]] = "
         case_sensitive=case_sensitive
     )
 
+def parameter_reply(msg_id: int, flags: int = 0):
+    async def func(flt, _, update: Update):
+        if isinstance(update, Message):
+            value = update.id
+        else:
+            raise ValueError(f"This custom filter doesn't work with {type(update)}")
 
+        if value:
+            update.parameterReply = flt.msg_id + 1 == value
+        return bool(update.parameterReply)
+
+    return create(
+        func,
+        "ParameterReplyFilter",
+        msg_id=msg_id
+    )
+
+
+def regex_reply(pattern: Union[str, Pattern], flags: int = 0):
+    async def func(flt, _, update: Update):
+        if isinstance(update, Message):
+            value = update.reply_to_message.text or update.reply_to_message.caption
+        else:
+            raise ValueError(f"This custom filter doesn't work with {type(update)}")
+
+        if value:
+            update.matches = list(flt.p.finditer(value)) or None
+
+        return bool(update.matches)
+
+    return create(
+        func,
+        "RegexReplyFilter",
+        p=pattern if isinstance(pattern, Pattern) else re.compile(pattern, flags)
+    )
 # endregion
 
 def regex(pattern: Union[str, Pattern], flags: int = 0):

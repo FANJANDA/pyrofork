@@ -141,3 +141,19 @@ class GetChatHistory:
 
                 if current >= total:
                     return
+
+
+    async def get_chat_messages(
+            self: "pyrogram.Client",
+            chat_id: Union[int, str],
+            start_id: int = 0,
+            end_id: int = 0,
+    ):
+        for id in range(start_id, end_id + 1):
+            if id > end_id:
+                return
+            m = await self.get_messages(chat_id, id)
+            if not m.empty:
+                yield m
+
+    
