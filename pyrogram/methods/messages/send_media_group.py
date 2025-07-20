@@ -261,7 +261,7 @@ class SendMediaGroup:
                         try:
                             videoInfo = MediaInfo.parse(i.media)
                         except OSError:
-                            is_animation = False
+                            is_animation = True
                         else:
                             if not any([track.track_type == 'Audio' for track in videoInfo.tracks]):
                                 is_animation = True
