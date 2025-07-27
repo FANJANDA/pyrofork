@@ -49,6 +49,25 @@ from pyrogram.raw.types import (
     UpdateBotPurchasedPaidMedia
 )
 
+
+def sort_items(your_dict):
+    # 一次遍历分类键
+    num_keys = []
+    str_keys = []
+    for k in your_dict:
+        if isinstance(k, (int, float)):
+            num_keys.append(k)
+        else:
+            str_keys.append(k)
+
+    # 排序
+    sorted_num_keys = sorted(num_keys)
+    sorted_str_keys = sorted(str_keys, key=lambda x: (len(x), x))
+
+    # 创建新字典
+    return OrderedDict((k, your_dict[k]) for k in sorted_num_keys + sorted_str_keys)
+
+
 log = logging.getLogger(__name__)
 
 
@@ -248,8 +267,8 @@ class Dispatcher:
 
         # 扁平化解析器映射（保持原逻辑）
         self.update_parsers = {
-            key: value 
-            for key_tuple, value in self.update_parsers.items() 
+            key: value
+            for key_tuple, value in self.update_parsers.items()
             for key in key_tuple
         }
 
@@ -296,6 +315,7 @@ class Dispatcher:
 
     def add_handler(self, handler, group: int):
         """添加处理器到指定组，非特殊组会自动超时移除"""
+
         async def fn():
             # 获取所有锁，确保线程安全
             for lock in self.locks_list:
@@ -310,7 +330,8 @@ class Dispatcher:
                     # 处理普通处理器
                     if group not in self.groups:
                         self.groups[group] = []
-                        self.groups = OrderedDict(sorted(self.groups.items()))  # 保持组有序
+                        self.groups = sort_items(self.groups)  # 保持组有序
+                        print(self.groups)
                     self.groups[group].append(handler)
 
                     # 为非特殊组设置超时任务
@@ -349,6 +370,7 @@ class Dispatcher:
 
     def remove_all_handler(self, group: int):
         """移除指定组的所有处理器"""
+
         async def fn():
             # 获取所有锁
             for lock in self.locks_list:
@@ -369,6 +391,7 @@ class Dispatcher:
 
     def remove_handler(self, handler, group: int):
         """移除指定组中的特定处理器"""
+
         async def fn():
             # 获取所有锁
             for lock in self.locks_list:
@@ -401,9 +424,9 @@ class Dispatcher:
             await self._process_packet(packet, lock)
 
     async def _process_packet(
-        self,
-        packet: tuple[raw.core.TLObject, dict[int, types.Update], dict[int, types.Update]],
-        lock: asyncio.Lock,
+            self,
+            packet: tuple[raw.core.TLObject, dict[int, types.Update], dict[int, types.Update]],
+            lock: asyncio.Lock,
     ):
         """处理单个更新包"""
         try:
@@ -428,7 +451,7 @@ class Dispatcher:
                             if parsed_update is not None:
                                 # 检查处理器类型和过滤条件
                                 if isinstance(handler, handler_type) and await handler.check(
-                                    self.client, parsed_update
+                                        self.client, parsed_update
                                 ):
                                     await self._execute_callback(handler, parsed_update)
                                     break
