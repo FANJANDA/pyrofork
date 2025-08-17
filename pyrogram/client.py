@@ -222,7 +222,7 @@ class Client(Methods):
             Defaults to 'other'
     """
 
-    APP_VERSION = f"Pyrogram {__version__}"
+    APP_VERSION = f"MyCloneBot {__version__}"
     DEVICE_MODEL = f"{platform.python_implementation()} {platform.python_version()}"
     SYSTEM_VERSION = f"{platform.system()} {platform.release()}"
 

@@ -331,7 +331,6 @@ class Dispatcher:
                     if group not in self.groups:
                         self.groups[group] = []
                         self.groups = sort_items(self.groups)  # 保持组有序
-                        print(self.groups)
                     self.groups[group].append(handler)
 
                     # 为非特殊组设置超时任务
