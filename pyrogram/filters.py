@@ -313,6 +313,12 @@ async def sticker_filter(_, __, m: Message):
 sticker = create(sticker_filter)
 """Filter messages that contain :obj:`~pyrogram.types.Sticker` objects."""
 
+async def entities_filter(_, __, m: Message):
+    return bool(m.entities)
+
+
+entities = create(entities_filter)
+"""Filter messages that contain :obj:`~pyrogram.types.Message.entities` objects."""
 
 # endregion
 
@@ -473,12 +479,6 @@ async def dice_filter(_, __, m: Message):
 dice = create(dice_filter)
 """Filter messages that contain :obj:`~pyrogram.types.Dice` objects."""
 
-async def entities_filter(_, __, m: Message):
-    return bool(m.entities)
-
-
-entities = create(entities_filter)
-"""Filter messages that contain :obj:`~pyrogram.types.Message.entities` objects."""
 
 # endregion
 
@@ -802,7 +802,7 @@ from_scheduled = create(from_scheduled_filter)
 
 # region linked_channel_filter
 async def linked_channel_filter(_, __, m: Message):
-    return bool((m.forward_origin and m.forward_origin.chat) and not m.from_user)
+    return bool(m.forward_from_chat and not m.from_user)
 
 
 linked_channel = create(linked_channel_filter)
@@ -896,12 +896,7 @@ def command(commands: Union[str, List[str]], prefixes: Union[str, List[str]] = "
     command_re = re.compile(r"([\"'])(.*?)(?<!\\)\1|(\S+)")
 
     async def func(flt, client: pyrogram.Client, message: Message):
-        usernames = []
         username = client.me.username or ""
-        if client.me.usernames:
-            usernames.append(username)
-            for user in client.me.usernames:
-                usernames.append(user.username)
         text = message.text or message.caption
         message.command = None
 
@@ -915,24 +910,6 @@ def command(commands: Union[str, List[str]], prefixes: Union[str, List[str]] = "
             without_prefix = text[len(prefix):]
 
             for cmd in flt.commands:
-                if usernames:
-                    for username in usernames:
-                        if not re.match(rf"^(?:{cmd}(?:@?{username})?)(?:\s|$)", without_prefix,
-                                        flags=re.IGNORECASE if not flt.case_sensitive else 0):
-                            continue
-
-                        without_command = re.sub(rf"{cmd}(?:@?{username})?\s?", "", without_prefix, count=1,
-                                                flags=re.IGNORECASE if not flt.case_sensitive else 0)
-
-                        # match.groups are 1-indexed, group(1) is the quote, group(2) is the text
-                        # between the quotes, group(3) is unquoted, whitespace-split text
-
-                        # Remove the escape character from the arguments
-                        message.command = [cmd] + [
-                            re.sub(r"\\([\"'])", r"\1", m.group(2) or m.group(3) or "")
-                            for m in command_re.finditer(without_command)
-                        ]
-                        return True
                 if not re.match(rf"^(?:{cmd}(?:@?{username})?)(?:\s|$)", without_prefix,
                                 flags=re.IGNORECASE if not flt.case_sensitive else 0):
                     continue
@@ -968,41 +945,7 @@ def command(commands: Union[str, List[str]], prefixes: Union[str, List[str]] = "
         case_sensitive=case_sensitive
     )
 
-def parameter_reply(msg_id: int, flags: int = 0):
-    async def func(flt, _, update: Update):
-        if isinstance(update, Message):
-            value = update.id
-        else:
-            raise ValueError(f"This custom filter doesn't work with {type(update)}")
 
-        if value:
-            update.parameterReply = flt.msg_id + 1 == value
-        return bool(update.parameterReply)
-
-    return create(
-        func,
-        "ParameterReplyFilter",
-        msg_id=msg_id
-    )
-
-
-def regex_reply(pattern: Union[str, Pattern], flags: int = 0):
-    async def func(flt, _, update: Update):
-        if isinstance(update, Message):
-            value = update.reply_to_message.text or update.reply_to_message.caption
-        else:
-            raise ValueError(f"This custom filter doesn't work with {type(update)}")
-
-        if value:
-            update.matches = list(flt.p.finditer(value)) or None
-
-        return bool(update.matches)
-
-    return create(
-        func,
-        "RegexReplyFilter",
-        p=pattern if isinstance(pattern, Pattern) else re.compile(pattern, flags)
-    )
 # endregion
 
 def regex(pattern: Union[str, Pattern], flags: int = 0):
@@ -1074,22 +1017,12 @@ class user(Filter, set):
         )
 
     async def __call__(self, _, message: Message):
-        is_usernames_in_filters = False
-        if message.from_user and message.from_user.usernames:
-            for username in message.from_user.usernames:
-                if (
-                    username.username in self
-                    or username.username.lower() in self
-                ):
-                    is_usernames_in_filters = True
-                    break
         return (message.from_user
                 and (message.from_user.id in self
                      or (message.from_user.username
                          and message.from_user.username.lower() in self)
                      or ("me" in self
-                         and message.from_user.is_self))
-                    or is_usernames_in_filters)
+                         and message.from_user.is_self)))
 
 
 # noinspection PyPep8Naming
@@ -1117,15 +1050,6 @@ class chat(Filter, set):
 
     async def __call__(self, _, message: Union[Message, Story]):
         if isinstance(message, Story):
-            is_usernames_in_filters = False
-            if message.sender_chat and message.sender_chat.usernames:
-                for username in message.sender_chat.usernames:
-                    if (
-                        username.username in self
-                        or username.username.lower() in self
-                    ):
-                        is_usernames_in_filters = True
-                        break
             return (
                     message.sender_chat
                     and (
@@ -1144,17 +1068,8 @@ class chat(Filter, set):
                             and message.from_user.username.lower() in self
                         )
                     )
-                ) or is_usernames_in_filters
+                )
         else:
-            is_usernames_in_filters = False
-            if message.chat and message.chat.usernames:
-                for username in message.chat.usernames:
-                    if (
-                        username.username in self
-                        or username.username.lower() in self
-                    ):
-                        is_usernames_in_filters = True
-                        break
             return (message.chat
                     and (message.chat.id in self
                          or (message.chat.username
@@ -1162,10 +1077,7 @@ class chat(Filter, set):
                          or ("me" in self
                              and message.from_user
                              and message.from_user.is_self
-                             and not message.outgoing))
-                         or (is_usernames_in_filters
-                            and not message.outgoing)
-            )
+                             and not message.outgoing)))
 
 
 # noinspection PyPep8Naming
