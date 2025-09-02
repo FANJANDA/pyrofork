@@ -473,6 +473,12 @@ async def dice_filter(_, __, m: Message):
 dice = create(dice_filter)
 """Filter messages that contain :obj:`~pyrogram.types.Dice` objects."""
 
+async def entities_filter(_, __, m: Message):
+    return bool(m.entities)
+
+
+entities = create(entities_filter)
+"""Filter messages that contain :obj:`~pyrogram.types.Message.entities` objects."""
 
 # endregion
 

@@ -35,7 +35,8 @@ class CreateStickerSet:
         sticker: str,
         user_id: Union[int, str] = None,
         emoji: str = "🤔",
-        masks: bool = None
+        masks: bool = None,
+        emojis: bool = None,
     ) -> Optional["types.Message"]:
         """Create a new stickerset.
 
@@ -117,10 +118,11 @@ class CreateStickerSet:
                 stickers=[
                     raw.types.InputStickerSetItem(
                         document=media,
-                        emoji=emoji
+                        emoji=emoji,
                     )
                 ],
-                masks=masks
+                masks=masks,
+                emojis=emojis
             )
         )
 
