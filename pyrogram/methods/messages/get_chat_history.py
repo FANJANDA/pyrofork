@@ -24,17 +24,53 @@ import pyrogram
 from pyrogram import types, raw, utils
 
 
+async def get_chunk_v2(
+        *,
+        client: "pyrogram.Client",
+        chat_id: Union[int, str],
+        limit: int = 0,
+        offset: int = 0,
+        min_id: int = 0,
+        max_id: int = 0,
+        from_message_id: int = 0,
+        from_date: datetime = utils.zero_datetime(),
+        reverse: bool = False
+):
+    from_message_id = from_message_id or (1 if reverse else 0)
+    messages = await utils.parse_messages(
+        client,
+        await client.invoke(
+            raw.functions.messages.GetHistory(
+                peer=await client.resolve_peer(chat_id),
+                offset_id=from_message_id,
+                offset_date=utils.datetime_to_timestamp(from_date),
+                add_offset=offset * (-1 if reverse else 1) - (limit if reverse else 0),
+                limit=limit,
+                max_id=max_id,
+                min_id=min_id,
+                hash=0,
+            ),
+            sleep_threshold=60,
+        ),
+        replies=0,
+    )
+
+    if reverse:
+        messages.reverse()
+
+    return messages
+
+
 async def get_chunk(
-    *,
-    client: "pyrogram.Client",
-    chat_id: Union[int, str],
-    limit: int = 0,
-    offset: int = 0,
-    from_message_id: int = 0,
-    from_date: datetime = utils.zero_datetime(),
-    min_id: int = 0,
-    max_id: int = 0,
-    reverse: Optional[bool] = None
+        *,
+        client: "pyrogram.Client",
+        chat_id: Union[int, str],
+        limit: int = 0,
+        offset: int = 0,
+        from_message_id: int = 0,
+        from_date: datetime = utils.zero_datetime(),
+        min_id: int = 0,
+        max_id: int = 0
 ):
     messages = await client.invoke(
         raw.functions.messages.GetHistory(
@@ -49,23 +85,61 @@ async def get_chunk(
         ),
         sleep_threshold=60
     )
-    if reverse:
-        messages.messages.reverse()
 
     return await utils.parse_messages(client, messages, replies=0)
 
 
 class GetChatHistory:
+    async def get_chat_history_v2(
+            self: "pyrogram.Client",
+            chat_id: Union[int, str],
+            limit: int = 0,
+            min_id: int = 0,
+            max_id: int = 0,
+            offset: int = 0,
+            offset_id: int = 0,
+            offset_date: datetime = utils.zero_datetime(),
+            reverse: bool = False,
+    ) -> Optional[AsyncGenerator["types.Message", None]]:
+        current = 0
+        total = limit or (1 << 31) - 1
+        limit = min(100, total)
+
+        while True:
+            messages = await get_chunk_v2(
+                client=self,
+                chat_id=chat_id,
+                limit=limit,
+                offset=offset,
+                min_id=min_id,
+                max_id=max_id + 1 if max_id else 0,
+                from_message_id=offset_id,
+                from_date=offset_date,
+                reverse=reverse,
+            )
+
+            if not messages:
+                return
+
+            offset_id = messages[-1].id + (1 if reverse else 0)
+
+            for message in messages:
+                yield message
+
+                current += 1
+
+                if current >= total:
+                    return
+
     async def get_chat_history(
-        self: "pyrogram.Client",
-        chat_id: Union[int, str],
-        limit: int = 0,
-        offset: int = 0,
-        offset_id: int = 0,
-        offset_date: datetime = utils.zero_datetime(),
-        min_id: int = 0,
-        max_id: int = 0,
-        reverse: Optional[bool] = None
+            self: "pyrogram.Client",
+            chat_id: Union[int, str],
+            limit: int = 0,
+            offset: int = 0,
+            offset_id: int = 0,
+            offset_date: datetime = utils.zero_datetime(),
+            min_id: int = 0,
+            max_id: int = 0
     ) -> Optional[AsyncGenerator["types.Message", None]]:
         """Get messages from a chat history.
 
@@ -100,9 +174,6 @@ class GetChatHistory:
             max_id: (``int``, *optional*):
                 The maximum message id. you will not get any message which have id greater than max_id.
 
-            reverse (``bool``, *optional*):
-                Pass True to retrieve the messages in reversed order (from older to most recent).
-
         Returns:
             ``Generator``: A generator yielding :obj:`~pyrogram.types.Message` objects.
 
@@ -117,7 +188,7 @@ class GetChatHistory:
         limit = min(100, total)
 
         while True:
-            messages = await get_chunk(
+            messages = await get_chunk_v2(
                 client=self,
                 chat_id=chat_id,
                 limit=limit,
@@ -125,8 +196,7 @@ class GetChatHistory:
                 from_message_id=offset_id,
                 from_date=offset_date,
                 min_id=min_id,
-                max_id=max_id,
-                reverse=reverse
+                max_id=max_id
             )
 
             if not messages:
@@ -142,7 +212,6 @@ class GetChatHistory:
                 if current >= total:
                     return
 
-
     async def get_chat_messages(
             self: "pyrogram.Client",
             chat_id: Union[int, str],
@@ -155,5 +224,3 @@ class GetChatHistory:
             m = await self.get_messages(chat_id, id)
             if not m.empty:
                 yield m
-
-    
