@@ -545,7 +545,7 @@ class SendMediaGroup:
                         sleep_threshold=60,
                     )
                 else:
-                    r = await self.invoke(rpc, sleep_threshold=60)
+                    r = await self.invoke(rpc, sleep_threshold=99999)
 
                 return await utils.parse_messages(
                     self,
