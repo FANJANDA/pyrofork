@@ -78,7 +78,9 @@ class InputMediaAudio(InputMedia):
         duration: int = 0,
         performer: str = "",
         title: str = "",
-        file_name: str = None
+        file_name: str = None,
+        *args,
+        **kwargs
     ):
         super().__init__(media, caption, parse_mode, caption_entities)
 

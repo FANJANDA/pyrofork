@@ -35,7 +35,8 @@ class CreateStickerSet:
         sticker: str,
         user_id: Union[int, str] = None,
         emoji: str = "🤔",
-        masks: bool = None
+        masks: bool = None,
+        emojis: bool = None,
     ) -> Optional["types.Message"]:
         """Create a new stickerset.
 
@@ -120,7 +121,8 @@ class CreateStickerSet:
                         emoji=emoji
                     )
                 ],
-                masks=masks
+                masks=masks,
+                emojis=emojis
             )
         )
 

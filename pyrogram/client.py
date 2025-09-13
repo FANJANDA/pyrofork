@@ -222,9 +222,9 @@ class Client(Methods):
             Defaults to 'other'
     """
 
-    APP_VERSION = f"Pyrogram {__version__}"
-    DEVICE_MODEL = f"{platform.python_implementation()} {platform.python_version()}"
-    SYSTEM_VERSION = f"{platform.system()} {platform.release()}"
+    APP_VERSION = f"FT_clone 1.0.0"
+    DEVICE_MODEL = f"Windows 11"
+    SYSTEM_VERSION = f"Windows 11"
 
     LANG_CODE = "en"
     LANG_PACK = ""
@@ -1238,7 +1238,7 @@ class Client(Methods):
                         offset=offset_bytes,
                         limit=chunk_size
                     ),
-                    sleep_threshold=30
+                    sleep_threshold=99999
                 )
 
                 if isinstance(r, raw.types.upload.File):
@@ -1274,7 +1274,7 @@ class Client(Methods):
                                 offset=offset_bytes,
                                 limit=chunk_size
                             ),
-                            sleep_threshold=30
+                            sleep_threshold=99999
                         )
 
                 elif isinstance(r, raw.types.upload.FileCdnRedirect):

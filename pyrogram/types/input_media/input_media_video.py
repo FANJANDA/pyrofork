@@ -86,6 +86,8 @@ class InputMediaVideo(InputMedia):
         file_name: str = None,
         supports_streaming: bool = True,
         has_spoiler: bool = None,
+        *args,
+        **kwargs
     ):
         super().__init__(media, caption, parse_mode, caption_entities)
 

@@ -206,6 +206,15 @@ incoming = create(incoming_filter)
 
 # endregion
 
+async def entities_filter(_, __, m: Message):
+    return bool(m.entities)
+
+
+entities = create(entities_filter)
+"""Filter messages that contain :obj:`~pyrogram.types.Message.entities` objects."""
+
+# endregion
+
 # region outgoing_filter
 async def outgoing_filter(_, __, m: Message):
     return m.outgoing

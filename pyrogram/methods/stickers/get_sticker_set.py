@@ -49,4 +49,4 @@ class GetStickerSet:
             )
         )
 
-        return types.StickerSet._parse(r.set)
+        return types.StickerSet._parse(r.set), r
