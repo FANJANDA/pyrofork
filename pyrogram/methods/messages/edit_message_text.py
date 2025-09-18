@@ -33,7 +33,7 @@ class EditMessageText:
         text: str,
         parse_mode: Optional["enums.ParseMode"] = None,
         entities: List["types.MessageEntity"] = None,
-        disable_web_page_preview: bool = None,
+        disable_web_page_preview: bool = False,
         invert_media: bool = None,
         reply_markup: "types.InlineKeyboardMarkup" = None,
         business_connection_id: str = None
