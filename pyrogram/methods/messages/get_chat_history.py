@@ -98,12 +98,12 @@ class GetChatHistory:
             chat_id: Union[int, str],
             start_id: int = 0,
             end_id: int = 0,
+            reverse: bool = True
     ):
-        for id in range(start_id, end_id + 1):
-            if id > end_id:
-                return
+        message_gen = range(start_id, end_id + 1) if reverse else reversed(range(start_id, end_id + 1))
+        for id in message_gen:
             m = await self.get_messages(chat_id, id)
-            if not m.empty:
+            if not m.empty or not m.service:
                 yield m
 
     async def get_chat_history_v2(
