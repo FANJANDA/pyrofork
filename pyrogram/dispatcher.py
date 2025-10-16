@@ -334,7 +334,7 @@ class Dispatcher:
                     self.groups[group].append(handler)
 
                     # 为非特殊组设置超时任务
-                    if group not in self.special_groups and 'listen' not in str(group):
+                    if group not in self.special_groups and 'listen' not in str(group) and 'edit' not in str(group):
                         # 若已有任务则取消（重置超时）
                         if group in self.timeout_tasks:
                             self.timeout_tasks[group].cancel()
