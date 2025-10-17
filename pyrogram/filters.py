@@ -192,6 +192,12 @@ async def bot_filter(_, __, m: Message):
 bot = create(bot_filter)
 """Filter messages coming from bots."""
 
+async def entities_filter(_, __, m: Message):
+    return bool(m.entities)
+
+
+entities = create(entities_filter)
+"""Filter messages that contain :obj:`~pyrogram.types.Message.entities` objects."""
 
 # endregion
 
