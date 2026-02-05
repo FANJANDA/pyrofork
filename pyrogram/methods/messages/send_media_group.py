@@ -66,6 +66,7 @@ class SendMediaGroup:
             invert_media: bool = None,
             progress: Callable = None,
             progress_args: tuple = (),
+            **kwargs
     ) -> List["types.Message"]:
         """Send a group of photos or videos as an album.
 
