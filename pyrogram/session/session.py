@@ -438,6 +438,10 @@ class Session:
                     query_name, str(e) or repr(e)
                 )
 
+                # If connection is closed, restart the session
+                if isinstance(e, OSError):
+                    await self.restart()
+
                 await asyncio.sleep(0.5)
 
                 return await self.invoke(query, retries - 1, timeout)
