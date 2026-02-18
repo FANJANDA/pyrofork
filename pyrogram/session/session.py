@@ -51,8 +51,8 @@ class Result:
 class Session:
     START_TIMEOUT = 2
     WAIT_TIMEOUT = 15
-    SLEEP_THRESHOLD = 99999
-    MAX_RETRIES = 20
+    SLEEP_THRESHOLD = 10
+    MAX_RETRIES = 10
     ACKS_THRESHOLD = 10
     PING_INTERVAL = 5
     STORED_MSG_IDS_MAX_SIZE = 500
@@ -437,10 +437,6 @@ class Session:
                     Session.MAX_RETRIES - retries + 1,
                     query_name, str(e) or repr(e)
                 )
-
-                # If connection is closed, restart the session
-                if isinstance(e, OSError):
-                    await self.restart()
 
                 await asyncio.sleep(0.5)
 
