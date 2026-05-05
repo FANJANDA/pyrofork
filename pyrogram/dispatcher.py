@@ -313,6 +313,14 @@ class Dispatcher:
 
             log.info("Stopped %s HandlerTasks", self.client.workers)
 
+    def is_excluded_group(self, group) -> bool:
+        group_str = str(group)
+        return (group in self.special_groups or
+                'listen' in group_str or
+                'edit' in group_str or
+                'kw' in group_str or
+                'invite' in group_str)
+
     def add_handler(self, handler, group: int):
         """添加处理器到指定组，非特殊组会自动超时移除"""
 
@@ -334,7 +342,7 @@ class Dispatcher:
                     self.groups[group].append(handler)
 
                     # 为非特殊组设置超时任务
-                    if group not in self.special_groups and 'listen' not in str(group) and 'edit' not in str(group)  and 'kw' not in str(group) :
+                    if not self.is_excluded_group(group):
                         # 若已有任务则取消（重置超时）
                         if group in self.timeout_tasks:
                             self.timeout_tasks[group].cancel()
